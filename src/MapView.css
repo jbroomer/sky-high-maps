@@ -2,3 +2,17 @@
     height: 100vh;
     width: 100vw;
   }
+
+.path {
+  left: 0;
+  position: relative;
+  top: 10px;
+  z-index: 99999;
+}
+
+.leaflet-routing-container {
+  background: white;
+  max-width: 400px;
+  max-height: 95vh;
+  overflow-y: scroll;
+}
