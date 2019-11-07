@@ -2,6 +2,7 @@ import React from 'react';
 import { Map, TileLayer } from 'react-leaflet';
 import MapMarker from './MapMarker';
 import Path from './Path';
+import Elevation from './Elevation';
 import './MapView.css';
 
 
@@ -15,14 +16,15 @@ export default class MapView extends React.Component{
     this.onMapClick = this.onMapClick.bind(this);
     this._renderPath = this._renderPath.bind(this);
     this.setRouteControl = this.setRouteControl.bind(this);
-
+    this.setGeoPath = this.setGeoPath.bind(this);
     this.state = {
       currPosition: [0, 0],
       zoom: 3,
       customMarker: false,
       mapMarkers: [],
       currPath: null,
-      routeControl: null
+      routeControl: null,
+      geoPath: null
     }
   }
   saveMap = map => {
@@ -40,6 +42,10 @@ export default class MapView extends React.Component{
 
   setRouteControl = (routeControl) => {
     this.setState({ routeControl: routeControl });
+  }
+
+  setGeoPath = (geoPath) => {
+    this.setState({ geoPath: geoPath })
   }
 
   setLocation = (position) => {
@@ -78,15 +84,21 @@ export default class MapView extends React.Component{
    */
   _renderPath = () => {
     if(this.state.routeControl) {
-      console.log(this.state.routeControl);
       this.map.leafletElement.removeControl(this.state.routeControl);
     }
     if(this.state.mapMarkers.length === MAX_NUM_MARKERS) {
       const { mapMarkers } = this.state;
       const fromLoc = [mapMarkers[0].props.position.lat, mapMarkers[0].props.position.lng];
       const toLoc = [mapMarkers[1].props.position.lat, mapMarkers[1].props.position.lng];
-      this.setState({ currPath: (<Path map={this.map} setRouteControl={this.setRouteControl} fromLoc={fromLoc} toLoc={toLoc}/>),
-                      mapMarkers: []});
+      this.setState({ 
+        currPath: (<Path 
+                      map={this.map}
+                      setRouteControl={this.setRouteControl}
+                      setGeoPath={this.setGeoPath}
+                      fromLoc={fromLoc}
+                      toLoc={toLoc}/>),
+                      mapMarkers: []
+        });
       }
     else {
       this.setState({ currPath: null });
@@ -104,6 +116,9 @@ export default class MapView extends React.Component{
         {this.state.mapMarkers}
         <div>
           {this.state.currPath}
+        </div>
+        <div>
+          {this.state.geoPath != null ? <Elevation map={this.map} geoPath={this.state.geoPath} /> : ''}
         </div>
       </Map>
     )
