@@ -8,12 +8,16 @@ class Path extends MapLayer {
     let leafletElement = L.Routing.control({
       waypoints: [L.latLng(fromLoc[0], fromLoc[1]), L.latLng(toLoc[0], toLoc[1])],
       showAlternatives: true,
-      geometry: 'geojson'
+      router: L.Routing.osrmv1({
+        serviceUrl: `http://127.0.0.1:5000/route/v1`,
+        geometry: 'geojson'
+    }),
     }).addTo(map.leafletElement);
+
     setRouteControl(leafletElement);
     //console.log(leafletElement.getPlan()['_events']);
     leafletElement.on('routeselected', function(routes) {
-      setGeoPath(routes.route.coordinates);
+      setGeoPath(routes.route);
       console.log(routes);
     }, this);
 

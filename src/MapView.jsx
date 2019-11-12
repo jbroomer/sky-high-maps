@@ -1,10 +1,9 @@
 import React from 'react';
 import { Map, TileLayer } from 'react-leaflet';
+import L from 'leaflet';
 import MapMarker from './MapMarker';
 import Path from './Path';
-import Elevation from './Elevation';
 import './MapView.css';
-
 
 const MAX_NUM_MARKERS = 2;
 
@@ -17,6 +16,7 @@ export default class MapView extends React.Component{
     this._renderPath = this._renderPath.bind(this);
     this.setRouteControl = this.setRouteControl.bind(this);
     this.setGeoPath = this.setGeoPath.bind(this);
+    
     this.state = {
       currPosition: [0, 0],
       zoom: 3,
@@ -45,7 +45,7 @@ export default class MapView extends React.Component{
   }
 
   setGeoPath = (geoPath) => {
-    this.setState({ geoPath: geoPath })
+    this.setState({ geoPath: geoPath });
   }
 
   setLocation = (position) => {
@@ -116,9 +116,6 @@ export default class MapView extends React.Component{
         {this.state.mapMarkers}
         <div>
           {this.state.currPath}
-        </div>
-        <div>
-          {this.state.geoPath != null ? <Elevation map={this.map} geoPath={this.state.geoPath} /> : ''}
         </div>
       </Map>
     )
