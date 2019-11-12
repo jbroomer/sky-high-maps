@@ -17,8 +17,11 @@ export default class MapView extends React.Component{
     this.setRouteControl = this.setRouteControl.bind(this);
     this.setGeoPath = this.setGeoPath.bind(this);
     
+    this.setElevation = this.setElevation.bind(this);
+
     this.state = {
       currPosition: [0, 0],
+      elevation: 0,
       zoom: 3,
       customMarker: false,
       mapMarkers: [],
@@ -37,6 +40,7 @@ export default class MapView extends React.Component{
   componentDidMount() {
     if(navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(this.setLocation);
+      navigator.geolocation.getCurrentPosition(this.setElevation);
     }
   }
 
@@ -54,6 +58,25 @@ export default class MapView extends React.Component{
     this.setState({ currPosition: [lat, lng], zoom:12 });
   }
 
+  setElevation = position => {
+    fetch('/api/elevation', {
+      method: "POST",
+      mode: "cors",
+      cache: "no-cache", 
+      credentials: "same-origin", 
+      headers: {
+          "Content-Type": "application/json; charset=utf-8",
+      },
+      redirect: "follow", 
+      referrer: "no-referrer", 
+      body: JSON.stringify({longitude: position.coords.longitude, latitude: position.coords.latitude})
+  }).then(function (response) {
+    return response.json();
+  }).then( jsonResponse => {
+        this.setState({elevation: JSON.parse(jsonResponse.response)[0].elevation})
+        console.log('elevation', this.state.elevation)
+      });
+  }
   onMapClick = (e) => {
     const { mapMarkers } = this.state;
     const id=mapMarkers.length+1;
