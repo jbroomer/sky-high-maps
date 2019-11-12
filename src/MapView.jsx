@@ -3,6 +3,7 @@ import { Map, TileLayer } from 'react-leaflet';
 import L from 'leaflet';
 import MapMarker from './MapMarker';
 import Path from './Path';
+import Loading from './Loading';
 import './MapView.css';
 
 const MAX_NUM_MARKERS = 2;
@@ -16,10 +17,12 @@ export default class MapView extends React.Component{
     this._renderPath = this._renderPath.bind(this);
     this.setRouteControl = this.setRouteControl.bind(this);
     this.setGeoPath = this.setGeoPath.bind(this);
+    this.getAllElevations = this.getAllElevations.bind(this);
     
     this.setElevation = this.setElevation.bind(this);
 
     this.state = {
+      loading: false,
       currPosition: [0, 0],
       elevation: 0,
       zoom: 3,
@@ -49,7 +52,15 @@ export default class MapView extends React.Component{
   }
 
   setGeoPath = (geoPath) => {
-    this.setState({ geoPath: geoPath });
+    const addGeoPath = new Promise((res) => {
+      this.setState({ geoPath: geoPath });
+      if(this.state.geoPath === geoPath) {
+        res('Success')
+      }
+    })
+    addGeoPath.then(() => {
+      this.getAllElevations();
+    })
   }
 
   setLocation = (position) => {
@@ -77,6 +88,32 @@ export default class MapView extends React.Component{
         console.log('elevation', this.state.elevation)
       });
   }
+
+  getAllElevations = () => {
+    const { geoPath } = this.state;
+    let elevationPath = [];
+    if(geoPath) {
+      const elevationPromise = new Promise((res, rej) => {
+        this.setState({ loading: true });
+        (geoPath.coordinates).map((coordinates) => {
+          fetch(`https://nationalmap.gov/epqs/pqs.php?x=${coordinates.lng}&y=${coordinates.lat}&units=Feet&output=json`, {
+        }).then((response) => {
+          return response.json();
+        }).then( jsonResponse => {
+              elevationPath.push(jsonResponse.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation)
+              if(elevationPath.length === geoPath.coordinates.length) {
+                this.setState({ loading: false });
+                res('Success');
+              }
+            });
+       })
+      })
+      elevationPromise.then(() => {
+        console.log(elevationPath);
+      })
+    }
+  }
+
   onMapClick = (e) => {
     const { mapMarkers } = this.state;
     const id=mapMarkers.length+1;
@@ -130,17 +167,20 @@ export default class MapView extends React.Component{
 
   render() {
     return(
-      <Map onClick={this.onMapClick} className="map" center={this.state.currPosition} zoom={this.state.zoom} ref={this.saveMap}>
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
-        />
-        {this.renderPositionMarker()}
-        {this.state.mapMarkers}
-        <div>
-          {this.state.currPath}
-        </div>
-      </Map>
+      <div>
+        <Map onClick={this.onMapClick} className="map" center={this.state.currPosition} zoom={this.state.zoom} ref={this.saveMap}>
+          <TileLayer
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
+          />
+          {this.renderPositionMarker()}
+          {this.state.mapMarkers}
+          <div>
+            {this.state.currPath}
+          </div>
+          {this.state.loading ? <Loading /> : ''}
+        </Map>
+      </div>
     )
   }
 };
