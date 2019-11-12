@@ -23,6 +23,7 @@ export default class MapView extends React.Component{
 
     this.state = {
       loading: false,
+      loadingPercent: 0,
       currPosition: [0, 0],
       elevation: 0,
       zoom: 3,
@@ -102,8 +103,11 @@ export default class MapView extends React.Component{
         }).then( jsonResponse => {
               elevationPath.push(jsonResponse.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation)
               if(elevationPath.length === geoPath.coordinates.length) {
-                this.setState({ loading: false });
+                this.setState({ loading: false, loadingPercent: 0 });
                 res('Success');
+              } else {
+                const percent = Math.floor(elevationPath.length/geoPath.coordinates.length*100);
+                this.setState({ loadingPercent: percent })
               }
             });
        })
@@ -167,7 +171,7 @@ export default class MapView extends React.Component{
 
   render() {
     return(
-      <div>
+      <div className={this.state.loading ? "loading" : ''}>
         <Map onClick={this.onMapClick} className="map" center={this.state.currPosition} zoom={this.state.zoom} ref={this.saveMap}>
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -178,7 +182,7 @@ export default class MapView extends React.Component{
           <div>
             {this.state.currPath}
           </div>
-          {this.state.loading ? <Loading /> : ''}
+          {this.state.loading ? <Loading percent = {this.state.loadingPercent}/> : ''}
         </Map>
       </div>
     )
