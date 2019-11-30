@@ -4,10 +4,12 @@ import "leaflet-routing-machine";
 
 class Path extends MapLayer {
   createLeafletElement() {
-    const { map, fromLoc, toLoc, setRouteControl, setGeoPath } = this.props;
+    const { map, waypoints, setRouteControl, setGeoPath } = this.props;
+    console.log(waypoints)
     let leafletElement = L.Routing.control({
-      waypoints: [L.latLng(fromLoc[0], fromLoc[1]), L.latLng(toLoc[0], toLoc[1])],
+      waypoints: waypoints,
       showAlternatives: true,
+      routeWhileDragging: false,
       router: L.Routing.osrmv1({
         serviceUrl: `http://127.0.0.1:5000/route/v1`,
         geometry: 'geojson'

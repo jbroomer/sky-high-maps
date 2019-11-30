@@ -4,57 +4,59 @@ import L from 'leaflet';
 import MapMarker from './MapMarker';
 import Path from './Path';
 import Loading from './Loading';
+import ElevationGraph from './elevation-graph';
+import NavBar from './NavBar';
 import './MapView.css';
-
 const MAX_NUM_MARKERS = 2;
 
 export default class MapView extends React.Component{
   constructor(props) {
     super(props);
-    this.setLocation = this.setLocation.bind(this);
-    this.renderPositionMarker = this.renderPositionMarker.bind(this);
+    this.setCurrentLocation = this.setCurrentLocation.bind(this);
     this.onMapClick = this.onMapClick.bind(this);
-    this._renderPath = this._renderPath.bind(this);
+    this.renderPath = this.renderPath.bind(this);
     this.setRouteControl = this.setRouteControl.bind(this);
     this.setGeoPath = this.setGeoPath.bind(this);
     this.getAllElevations = this.getAllElevations.bind(this);
-    
-    this.setElevation = this.setElevation.bind(this);
-
+    this.addMapMarker = this.addMapMarker.bind(this);
+    this.handleElevationGraphOpen = this.handleElevationGraphOpen.bind(this);
+    this.clearMap = this.clearMap.bind(this);
     this.state = {
       loading: false,
       loadingPercent: 0,
       currPosition: [0, 0],
-      elevation: 0,
+      elevationDisabled: true,
+      pathDisabled: true,
       zoom: 3,
-      customMarker: false,
       mapMarkers: [],
       currPath: null,
       routeControl: null,
-      geoPath: null
+      geoPath: null,
+      elevationGraphOpen: false
     }
   }
   saveMap = map => {
     this.map = map;
-    this.setState({
-      isMapInit: true
-    });
   };
-
+  /**
+   * When the component mounts prompt user for location access and set current
+   * location if granted
+  */
   componentDidMount() {
     if(navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(this.setLocation);
-      navigator.geolocation.getCurrentPosition(this.setElevation);
+      navigator.geolocation.getCurrentPosition(this.setCurrentLocation);
     }
   }
 
+  // Callback function to store reference to path for later removal
   setRouteControl = (routeControl) => {
     this.setState({ routeControl: routeControl });
   }
 
+  // Stores array of latlng points along calculated path and calls method to retrieve elevations
   setGeoPath = (geoPath) => {
     const addGeoPath = new Promise((res) => {
-      this.setState({ geoPath: geoPath });
+      this.setState({ geoPath: geoPath, loading: true });
       if(this.state.geoPath === geoPath) {
         res('Success')
       }
@@ -64,44 +66,33 @@ export default class MapView extends React.Component{
     })
   }
 
-  setLocation = (position) => {
+  // Finds and sets current location on map
+  setCurrentLocation = (position) => {
     const lng = position.coords.longitude;
     const lat = position.coords.latitude;    
-    this.setState({ currPosition: [lat, lng], zoom:12 });
+    this.setState({ currPosition: [lat, lng], zoom:12 }, () => {
+      this.map.leafletElement.setView([lat, lng], 12)
+      this.addMapMarker(L.latLng(lat, lng));
+    });
   }
 
-  setElevation = position => {
-    fetch('/api/elevation', {
-      method: "POST",
-      mode: "cors",
-      cache: "no-cache", 
-      credentials: "same-origin", 
-      headers: {
-          "Content-Type": "application/json; charset=utf-8",
-      },
-      redirect: "follow", 
-      referrer: "no-referrer", 
-      body: JSON.stringify({longitude: position.coords.longitude, latitude: position.coords.latitude})
-  }).then(function (response) {
-    return response.json();
-  }).then( jsonResponse => {
-        this.setState({elevation: JSON.parse(jsonResponse.response)[0].elevation})
-        console.log('elevation', this.state.elevation)
-      });
-  }
-
+  // API used to retrieve elevation data which is then stored in state
   getAllElevations = () => {
     const { geoPath } = this.state;
     let elevationPath = [];
     if(geoPath) {
+      //Populate array path array with altitude info
       const elevationPromise = new Promise((res, rej) => {
-        this.setState({ loading: true });
         (geoPath.coordinates).map((coordinates) => {
           fetch(`https://nationalmap.gov/epqs/pqs.php?x=${coordinates.lng}&y=${coordinates.lat}&units=Feet&output=json`, {
         }).then((response) => {
           return response.json();
         }).then( jsonResponse => {
-              elevationPath.push(jsonResponse.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation)
+              elevationPath.push({
+                lat: coordinates.lat,
+                lng: coordinates.lng,
+                altitude: jsonResponse.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation
+              })
               if(elevationPath.length === geoPath.coordinates.length) {
                 this.setState({ loading: false, loadingPercent: 0 });
                 res('Success');
@@ -113,77 +104,119 @@ export default class MapView extends React.Component{
        })
       })
       elevationPromise.then(() => {
-        console.log(elevationPath);
+        this.setState({ geoAltitudePath: elevationPath });
       })
     }
   }
 
-  onMapClick = (e) => {
+  /**
+   * Adds a marker to the map at a specified location
+   * @position an L.latLng object
+   */
+  addMapMarker = (position) => {
     const { mapMarkers } = this.state;
     const id=mapMarkers.length+1;
-    const position = e.latlng;
     let newMarker = {};
-
-    if( mapMarkers.length === MAX_NUM_MARKERS) {
-      this.setState({ mapMarkers: [], customMarker: true });
-    }
-    else {
-      newMarker = <MapMarker key={id} id={id} position={position}/>;
-      this.setState({ mapMarkers: [...mapMarkers, newMarker], customMarker: true});
-    }
-    this._renderPath();
+    newMarker = <MapMarker key={id} id={id} position={position}/>;
+    this.setState({ mapMarkers: [...mapMarkers, newMarker] }, () => {
+      if(this.state.pathDisabled && this.state.mapMarkers.length >= MAX_NUM_MARKERS) {
+        this.setState({ pathDisabled: false });
+      }
+    });
   }
 
-  //
-  renderPositionMarker = () => {
-    if(this.state.customMarker || (this.state.currPosition[0] === 0 && this.state.currPosition[1] === 0)) {
-      return;
+  // Handle map clicks by adding markers at specified locations
+  onMapClick = (e) => {
+    const position = e.latlng;
+    this.addMapMarker(position);
+  }
+
+  // Clear map of all markings/stored data
+  clearMap = () => {
+    if(this.state.routeControl) {
+      this.map.leafletElement.removeControl(this.state.routeControl);
     }
-    return <MapMarker position={this.state.currPosition}/>;
+    this.setState({
+      loading: false,
+      loadingPercent: 0,
+      elevationDisabled: true,
+      pathDisabled: true,
+      mapMarkers: [],
+      currPath: null,
+      routeControl: null,
+      geoPath: null,
+      elevationGraphOpen: false
+    })
+  }
+  // Helper function to handle opening/closing of elevation graph
+  handleElevationGraphOpen = () => {
+    this.setState({ elevationGraphOpen: !this.state.elevationGraphOpen });
   }
 
   /**
    * Renders path object passing in location props from the current markers
    * and a callback function to retrieve the RoutControl created for later deletion
    */
-  _renderPath = () => {
+  renderPath = () => {
+    const { mapMarkers } = this.state;
     if(this.state.routeControl) {
       this.map.leafletElement.removeControl(this.state.routeControl);
     }
-    if(this.state.mapMarkers.length === MAX_NUM_MARKERS) {
-      const { mapMarkers } = this.state;
-      const fromLoc = [mapMarkers[0].props.position.lat, mapMarkers[0].props.position.lng];
-      const toLoc = [mapMarkers[1].props.position.lat, mapMarkers[1].props.position.lng];
-      this.setState({ 
-        currPath: (<Path 
-                      map={this.map}
-                      setRouteControl={this.setRouteControl}
-                      setGeoPath={this.setGeoPath}
-                      fromLoc={fromLoc}
-                      toLoc={toLoc}/>),
-                      mapMarkers: []
-        });
-      }
-    else {
-      this.setState({ currPath: null });
-    }
+    const waypoints = mapMarkers.map((loc) => {
+      console.log(loc)
+      return L.latLng(loc.props.position.lat, loc.props.position.lng);
+    })
+    console.log(waypoints)
+    this.setState({ 
+      currPath: (<Path 
+                    map={this.map}
+                    setRouteControl={this.setRouteControl}
+                    setGeoPath={this.setGeoPath}
+                    waypoints={waypoints}
+                    />),
+                    mapMarkers: [],
+                    elevationDisabled: false,
+      });
   }
 
   render() {
     return(
       <div className={this.state.loading ? "loading" : ''}>
-        <Map onClick={this.onMapClick} className="map" center={this.state.currPosition} zoom={this.state.zoom} ref={this.saveMap}>
+        {this.state.loading ? <Loading percent = {this.state.loadingPercent}/> : ''}
+        <NavBar 
+          map={this.map}
+          setMapMarker={this.addMapMarker}
+          setCurrentLocation={this.setCurrentLocation}
+          elevationDisabled={this.state.elevationDisabled}
+          handleElevationGraphOpen={this.handleElevationGraphOpen}
+          pathDisabled={this.state.pathDisabled}
+          renderPath={this.renderPath}
+          clearMap={this.clearMap}
+        />
+        <Map 
+          onClick={this.onMapClick}
+          className="map"
+          center={this.state.currPosition}
+          zoom={this.state.zoom} 
+          ref={this.saveMap}
+        >
           <TileLayer
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             attribution="&copy; <a href=&quot;http://osm.org/copyright&quot;>OpenStreetMap</a> contributors"
           />
-          {this.renderPositionMarker()}
           {this.state.mapMarkers}
           <div>
             {this.state.currPath}
+            {this.state.geoAltitudePath ? 
+              <ElevationGraph
+                open={this.state.elevationGraphOpen}
+                data={this.state.geoAltitudePath}
+                handleElevationGraphOpen={this.handleElevationGraphOpen}
+                /> : ''
+            }
           </div>
-          {this.state.loading ? <Loading percent = {this.state.loadingPercent}/> : ''}
         </Map>
+        
       </div>
     )
   }

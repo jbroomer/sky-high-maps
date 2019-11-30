@@ -1,0 +1,16 @@
+
+
+
+.search-item:hover {
+  color: lightblue;
+}
+
+.search-results {
+  display: none;
+}
+
+.search-results.show {
+  display: inherit;
+  position: absolute;
+  text-decoration-color: black;
+}
