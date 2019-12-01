@@ -114,6 +114,10 @@ export default class MapView extends React.Component{
    * @position an L.latLng object
    */
   addMapMarker = (position) => {
+    // If a path is already created, clear map before creating new markers
+    if(this.state.geoPath) {
+      this.clearMap();
+    }
     const { mapMarkers } = this.state;
     const id=mapMarkers.length+1;
     let newMarker = {};
