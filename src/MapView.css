@@ -1,18 +1,30 @@
 .map {
-    height: 100vh;
+    height: 95vh;
     width: 100vw;
+    top: calc(100vh - 95vh);
+    position: absolute;
+    z-index: -1;
   }
+
 
 .path {
   left: 0;
   position: relative;
   top: 10px;
-  z-index: 99999;
+  z-index: 1;
 }
 
 .leaflet-routing-container {
   background: white;
   max-width: 400px;
-  max-height: 95vh;
+  max-height: 90vh;
   overflow-y: scroll;
+}
+
+.leaflet-control-zoom {
+  top: 5vh;
+}
+
+.loading {
+  pointer-events: none;
 }
