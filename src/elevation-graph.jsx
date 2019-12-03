@@ -6,16 +6,7 @@ import * as V from 'victory';
 const prepareGraphData = (data) => {
   const temp = [];
   for(let i=0; i<data.length; i++) {
-    let graphObject;
-    if(i>50&& i<data.length-5) {
-      let avgAlt = 0;
-      for(let j = 0; j<5; j++) {
-        avgAlt += data[i+j].altitude;
-      }
-      graphObject = { y: Math.round(avgAlt/5), x: i }
-    } else {
-      graphObject = { y: Math.round(data[i].altitude), x: i }
-    }
+    const graphObject = { y: data[i].altitude, x: i }
     temp.push(graphObject);
   }
   return temp;
@@ -34,21 +25,24 @@ class ElevationGraph extends React.Component {
   }
   render() {
     return (
-      <Dialog open={this.props.open} fullWidth>
+      <Dialog open={this.props.open} maxWidth={'70vw'} maxHeight={'70vh'}>
         <DialogTitle>
           Elevation Graph
         </DialogTitle>
         <DialogContent>
           <V.VictoryChart
+            animate={{ duration: 2000 }}
+            width={1200}
             theme={V.VictoryTheme.material}
           >
-            <V.VictoryLine
+            <V.VictoryArea
               style={{
-                data: { stroke: "#c43a31" },
+                data: { fill: "#add8e6" },
                 parent: { border: "1px solid #ccc"}
               }}
-              interpolation="bundle"
+              labels={["Elevation (ft.)"]}
               data={prepareGraphData(this.props.data)}
+              interpolation={"basis"}
             />
           </V.VictoryChart>
         </DialogContent>

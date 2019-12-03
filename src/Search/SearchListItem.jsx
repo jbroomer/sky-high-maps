@@ -13,7 +13,18 @@ const SearchListItem = ({
   const placeMarker = () => {
     setMapMarker(latlng);
     clearSearch();
-    map.leafletElement.setView([latlng.lat, latlng.lng], 12)
+    // Prevents race condition where map is not instantiated
+    new Promise((res, rej) => {
+      if(map) {
+        res('Setting Current Location')
+      } else {;
+        rej();
+      }
+    }).then(() => {
+      map.leafletElement.setView([latlng.lat, latlng.lng], 12);
+    }).catch((err) => {
+      console.log('Map not initialized. Try again.');
+    })
   }
   return(
     <ListItem

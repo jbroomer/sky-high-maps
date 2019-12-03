@@ -8,7 +8,7 @@ import '../css/search.css';
 const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
-    width: 400,
+    width: '100%',
     zIndex: 9999,
   },
   input: {
