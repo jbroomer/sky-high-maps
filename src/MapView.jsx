@@ -87,21 +87,23 @@ export default class MapView extends React.Component{
           fetch(`https://nationalmap.gov/epqs/pqs.php?x=${coordinates.lng}&y=${coordinates.lat}&units=Feet&output=json`, {
         }).then((response) => {
           return response.json();
-        }).then( jsonResponse => {
-              elevationPath.push({
-                lat: coordinates.lat,
-                lng: coordinates.lng,
-                altitude: jsonResponse.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation
-              })
-              if(elevationPath.length === geoPath.coordinates.length) {
-                this.setState({ loading: false, loadingPercent: 0 });
-                res('Success');
-              } else {
-                const percent = Math.floor(elevationPath.length/geoPath.coordinates.length*100);
-                this.setState({ loadingPercent: percent })
-              }
-            });
+        }).then((jsonResponse) => {
+            elevationPath.push({
+              lat: coordinates.lat,
+              lng: coordinates.lng,
+              altitude: jsonResponse.USGS_Elevation_Point_Query_Service.Elevation_Query.Elevation
+            })
+            if(elevationPath.length >= geoPath.coordinates.length-10) {
+              this.setState({ loading: false, loadingPercent: 0 });
+              res('Success');
+            } else {
+              const percent = Math.floor(elevationPath.length/geoPath.coordinates.length*100);
+              this.setState({ loadingPercent: percent })
+            }
+          });
        })
+      }).catch((err) => {
+        console.log(err);
       })
       elevationPromise.then(() => {
         this.setState({ geoAltitudePath: elevationPath });
@@ -165,12 +167,11 @@ export default class MapView extends React.Component{
     const { mapMarkers } = this.state;
     if(this.state.routeControl) {
       this.map.leafletElement.removeControl(this.state.routeControl);
+      this.clearMap();
     }
     const waypoints = mapMarkers.map((loc) => {
-      console.log(loc)
       return L.latLng(loc.props.position.lat, loc.props.position.lng);
     })
-    console.log(waypoints)
     this.setState({ 
       currPath: (<Path 
                     map={this.map}

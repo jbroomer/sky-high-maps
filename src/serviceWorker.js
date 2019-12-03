@@ -126,6 +126,33 @@ function checkValidServiceWorker(swUrl, config) {
     });
 }
 
+const cacheName = "sky-high-cache";
+
+window.self.addEventListener('install', function(event) {
+  event.waitUntil(
+    caches.open(cacheName).then(function(cache) {
+      return cache.addAll(
+        [
+          '/css/App.css',
+          '/css/index.css',
+          '/offline.html',
+          '/NavBar.jsx'
+        ]
+      );
+    })
+  );
+});
+
+window.self.addEventListener('fetch', function(event) {
+  event.respondWith(
+    caches.match(event.request).then(function(response) {
+      return response || fetch(event.request);
+    }).catch(function() {
+      return caches.match('/offline.html');
+    })
+  );
+});
+
 export function unregister() {
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.ready.then(registration => {
