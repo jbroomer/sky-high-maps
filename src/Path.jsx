@@ -11,7 +11,7 @@ class Path extends MapLayer {
       showAlternatives: true,
       routeWhileDragging: false,
       router: L.Routing.osrmv1({
-        serviceUrl: `http://167.172.212.95:5000/route/v1`,
+        serviceUrl: `https://skyhighmaps.pagekite.me/route/v1`,
         geometry: 'geojson'
     }),
     }).addTo(map.leafletElement);
