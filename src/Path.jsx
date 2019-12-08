@@ -8,7 +8,6 @@ class Path extends MapLayer {
     console.log(waypoints)
     let leafletElement = L.Routing.control({
       waypoints: waypoints,
-      showAlternatives: true,
       routeWhileDragging: false,
       router: L.Routing.osrmv1({
         serviceUrl: `https://skyhighmaps.pagekite.me/route/v1`,

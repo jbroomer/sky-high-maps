@@ -5,6 +5,7 @@ import MapMarker from './MapMarker';
 import Path from './Path';
 import Loading from './Loading';
 import ElevationGraph from './elevation-graph';
+import MapDirectionsToggle from './MapDirectionsToggle';
 import NavBar from './NavBar';
 import './MapView.css';
 const MAX_NUM_MARKERS = 2;
@@ -198,6 +199,10 @@ export default class MapView extends React.Component{
           renderPath={this.renderPath}
           clearMap={this.clearMap}
         />
+        {this.state.routeControl ? <MapDirectionsToggle 
+                                    directionsContainer={this.state.routeControl._container}
+                                    directionsContainerClass={this.state.routeControl._container.getAttribute('class')}
+                                    /> : ''}
         <Map 
           onClick={this.onMapClick}
           className="map"
@@ -221,7 +226,6 @@ export default class MapView extends React.Component{
             }
           </div>
         </Map>
-        
       </div>
     )
   }

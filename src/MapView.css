@@ -16,9 +16,24 @@
 
 .leaflet-routing-container {
   background: white;
-  max-width: 400px;
-  max-height: 90vh;
+  max-width: 300px;
+  max-height: 80vh;
   overflow-y: scroll;
+  top: 5vh;
+  width: 100%;
+  height: 100%;
+  padding: 5px;
+  transition: width .5s, height .5s linear;
+}
+
+.leaflet-routing-container.hidden {
+  width: 0px;
+  height: 0px;
+  transition: width .5s, height .5s linear;
+}
+
+.leaflet-routing-alt {
+  pointer-events: none;
 }
 
 .leaflet-control-zoom {
