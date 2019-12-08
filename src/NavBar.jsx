@@ -109,9 +109,23 @@ export default function NavBar({
     if(navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(setCurrentLocation);
     }
-    setMobileAnchor(null)
+    setMobileAnchor(false)
   }
 
+  const onMobileRenderPath = () => {
+    renderPath();
+    setMobileAnchor(false);
+  }
+
+  const onMobileElevationOpen = () => {
+    handleElevationGraphOpen();
+    setMobileAnchor(false)
+  }
+
+  const onMobileClearMap = () => {
+    clearMap();
+    setMobileAnchor(false);
+  }
  
 
   const mobileMenuId = 'primary-search-account-menu-mobile';
@@ -130,19 +144,19 @@ export default function NavBar({
         </IconButton>
         <p>Current Location</p>
       </MenuItem>
-      <MenuItem disabled={pathDisabled} onClick={renderPath}>
+      <MenuItem disabled={pathDisabled} onClick={onMobileRenderPath}>
         <IconButton  aria-label="Calculate Path" color="inherit">
           <DirectionsWalkIcon />
         </IconButton>
         <p>Path</p>
       </MenuItem>
-      <MenuItem disabled={elevationDisabled} onClick={handleElevationGraphOpen}>
+      <MenuItem disabled={elevationDisabled} onClick={onMobileElevationOpen}>
         <IconButton  aria-label="Calculate Elevation" color="inherit">
           <TrendingUpIcon />
         </IconButton>
         <p>Show Path Elevation</p>
       </MenuItem>
-      <MenuItem onClick={clearMap}>
+      <MenuItem onClick={onMobileClearMap}>
         <IconButton  aria-label="Reset Map State" color="inherit">
           <ClearIcon />
         </IconButton>
