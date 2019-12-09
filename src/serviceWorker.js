@@ -110,7 +110,18 @@ window.self.addEventListener('install', function(event) {
         [
           '/css/App.css',
           '/css/index.css',
+          '/css/search.css',
           '/offline.html',
+          '/Search/Search.jsx',
+          '/Search/SearchListItem.jsx',
+          '/Search/SearchResults.jsx',
+          '/elevation-graph.jsx',
+          '/index.jsx',
+          '/Loading.jsx',
+          '/MapDirectionsToggle.jsx',
+          '/MapMarker.jsx',
+          '/MapView.css',
+          '/Path.jsx',
           '/NavBar.jsx'
         ]
       );
