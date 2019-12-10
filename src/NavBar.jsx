@@ -12,7 +12,10 @@ import Menu from '@material-ui/core/Menu';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
 import MoreIcon from '@material-ui/icons/MoreVert';
 import Search from './Search/Search';
+import BounceLoader from 'react-spinners/BounceLoader';
+import PathOptionsButton from './PathOptionsButton';
 import PropTypes from 'prop-types';
+import './MapView.css'
 
 const useStyles = makeStyles(theme => ({
   grow: {
@@ -76,6 +79,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const spinnerOverride = 'display: block; margin-left: 5px;'
+
 export default function NavBar({
   map,
   setMapMarker,
@@ -84,21 +89,15 @@ export default function NavBar({
   handleElevationGraphOpen,
   pathDisabled,
   renderPath,
-  clearMap
+  clearMap,
+  isLoading
 }) {
   const classes = useStyles();
-  const [anchor, setAnchor] = React.useState(false);
   const [mobileAnchor, setMobileAnchor] = React.useState(false);
-  const isMenuOpen = anchor;
   const isMobileMenuOpen = mobileAnchor;
 
   const handleMobileMenuClose = () => {
     setMobileAnchor(false);
-  };
-
-  const handleMenuClose = () => {
-    setAnchor(false);
-    handleMobileMenuClose();
   };
 
   const handleMobileMenuOpen = event => {
@@ -110,11 +109,6 @@ export default function NavBar({
       navigator.geolocation.getCurrentPosition(setCurrentLocation);
     }
     setMobileAnchor(false)
-  }
-
-  const onMobileRenderPath = () => {
-    renderPath();
-    setMobileAnchor(false);
   }
 
   const onMobileElevationOpen = () => {
@@ -144,17 +138,28 @@ export default function NavBar({
         </IconButton>
         <p>Current Location</p>
       </MenuItem>
-      <MenuItem disabled={pathDisabled} onClick={onMobileRenderPath}>
+      <MenuItem disabled={pathDisabled}>
         <IconButton  aria-label="Calculate Path" color="inherit">
           <DirectionsWalkIcon />
         </IconButton>
-        <p>Path</p>
+        <PathOptionsButton 
+          mobile={true} 
+          renderPath={renderPath}
+          handleMobileMenuClose={handleMobileMenuClose}
+          />
       </MenuItem>
-      <MenuItem disabled={elevationDisabled} onClick={onMobileElevationOpen}>
+      <MenuItem disabled={elevationDisabled && !isLoading} onClick={onMobileElevationOpen}>
         <IconButton  aria-label="Calculate Elevation" color="inherit">
           <TrendingUpIcon />
         </IconButton>
-        <p>Show Path Elevation</p>
+        { isLoading ? <BounceLoader
+                            css={spinnerOverride}
+                            sizeUnit={"px"}
+                            color={'black'}
+                            size={30}
+                            loading={isLoading}
+                            /> : 'Show Path Elevation'}
+                            
       </MenuItem>
       <MenuItem onClick={onMobileClearMap}>
         <IconButton  aria-label="Reset Map State" color="inherit">
@@ -188,19 +193,25 @@ export default function NavBar({
               disabled={pathDisabled}
               aria-label="Calculate path"
               color="inherit"
-              onClick={renderPath}
             >
               <DirectionsWalkIcon />
-              <Typography>Path</Typography>
+              <PathOptionsButton renderPath={renderPath}/>
             </IconButton>
             <IconButton 
-              disabled={elevationDisabled}
+              disabled={elevationDisabled && !isLoading}
               aria-label="Calculate path elevation"
               color="inherit"
               onClick={handleElevationGraphOpen}
             >
               <TrendingUpIcon />
-              <Typography>Elevation</Typography>
+              <Typography>
+                <p>{ isLoading ? <BounceLoader
+                                    css={spinnerOverride}
+                                    color={'#FFFFFF'}
+                                    sizeUnit={"px"}
+                                    size={30}
+                                    loading={isLoading}/> : 'Show Path Elevation'}</p>
+              </Typography>
             </IconButton>
             <IconButton 
               aria-label="Reset Map State"
@@ -236,4 +247,5 @@ NavBar.propTypes = {
   pathDisabled: PropTypes.bool,
   renderPath: PropTypes.func,
   clearMap: PropTypes.func,
+  isLoading: PropTypes.bool,
 };
