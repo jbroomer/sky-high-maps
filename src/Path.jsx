@@ -1,16 +1,37 @@
 import { MapLayer, withLeaflet } from "react-leaflet";
 import L from "leaflet";
+import PropTypes from 'prop-types';
+import pathOptions from './path-options';
 import "leaflet-routing-machine";
+
+const elevationUrls = {
+  short: 'https://skyhighmaps.pagekite.me',
+  min: 'https://osrm-skyhighmaps.pagekite.me',
+  max: 'https://elevation-skyhighmaps.pagekite.me'
+}
+
+const selectUrl = (selectedOption) => {
+  switch(selectedOption) {
+    case pathOptions.shortestPath:
+      return elevationUrls.short;
+    case pathOptions.minElevation:
+      return elevationUrls.min;
+    case pathOptions.maxElevation:
+      return elevationUrls.max;
+    default:
+      return elevationUrls.short;
+  }
+
+}
 
 class Path extends MapLayer {
   createLeafletElement() {
-    const { map, waypoints, setRouteControl, setGeoPath } = this.props;
-    console.log(waypoints)
+    const { map, waypoints, setRouteControl, setGeoPath, selectedOption } = this.props;
     let leafletElement = L.Routing.control({
       waypoints: waypoints,
       routeWhileDragging: false,
       router: L.Routing.osrmv1({
-        serviceUrl: `https://skyhighmaps.pagekite.me/route/v1`,
+        serviceUrl: `${selectUrl(selectedOption)}/route/v1`,
         geometry: 'geojson'
     }),
     }).addTo(map.leafletElement);
@@ -25,5 +46,7 @@ class Path extends MapLayer {
     return leafletElement.getPlan();
   }
 }
-
+Path.propTypes = {
+  selectedOption: PropTypes.string,
+}
 export default withLeaflet(Path);

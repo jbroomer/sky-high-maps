@@ -40,6 +40,6 @@
   top: 5vh;
 }
 
-.loading {
-  pointer-events: none;
+.spinning-loader {
+  display: contents;
 }

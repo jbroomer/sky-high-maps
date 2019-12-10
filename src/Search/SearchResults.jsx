@@ -41,7 +41,12 @@ const SearchResults = ({
         setResults([]);
         return;
       }
-      opencage.geocode({ key, q: searchString }).then(response => {
+      opencage.geocode({ 
+        q: searchString,
+        proximity: '42.3903232, -72.511488',
+        no_annotations: 1, 
+        key, 
+      }).then(response => {
         const results = response.results.map((x, index) => {
           return <SearchListItem 
                     key={index}
