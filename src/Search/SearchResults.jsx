@@ -23,7 +23,8 @@ const useStyles = makeStyles(theme => ({
 }));
 
 //OpenCage API Key
-const key = '65ebc933781846df84cd69161932603d';
+// const key = '65ebc933781846df84cd69161932603d';
+const key = '7f6334b296b64dfba0e104744d4f14c9';
  
 
 const SearchResults = ({
