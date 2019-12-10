@@ -36,6 +36,10 @@
   pointer-events: none;
 }
 
+.leaflet-routing-alt.leaflet-routing-alt-minimized {
+  display: none;
+}
+
 .leaflet-control-zoom {
   top: 5vh;
 }
