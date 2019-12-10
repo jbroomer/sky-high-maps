@@ -12,7 +12,6 @@ const useStyles = makeStyles(theme => ({
     float: 'right',
     margin: 10,
     background: 'white',
-    marginRight: 20,
   },
 }));
 
