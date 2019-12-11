@@ -67,17 +67,3 @@ This section has moved here: https://facebook.github.io/create-react-app/docs/de
 
 This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
 
-### Sky High Maps is a Progressive Web App! What does that mean?
-
-Google states that a PWA should be reliable, fast and engaging. While those are high-level requirements for a web app to be considered progressive, Google does provide an audit tool (called Lighthouse) that runs a series of tests to conclude if an app is truly progressive. 
-
-Some lower level requirements checked by Lighthouse are:
-- Responds with a 200 when offline. 
-- Pages load quickly enough on mobile networks such as 3G.
-- Uses HTTPS everywhere.
-- Registers a service worker.
-- Contains an app manifest with proper content.
-
-All of the above requirements are met with Sky High Maps. Other components of the application such as an app theme, cached content and a custom splash screen make it so that the web app is not only a PWA, but it is PWA Optimized!
-
-Additional information on Progressive Web Apps and their uses is provided here: https://developers.google.com/web/progressive-web-apps
